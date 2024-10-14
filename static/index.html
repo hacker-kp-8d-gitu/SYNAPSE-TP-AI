@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Predictor AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Market Predictor AI</h1>
+        <form id="predictForm">
+            <label for="symbol">Enter Stock Symbol (e.g., AAPL, GOOGL):</label>
+            <input type="text" id="symbol" name="symbol" placeholder="AAPL" required>
+            <button type="submit">Predict</button>
+        </form>
+        <div id="predictionResult"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form from submitting traditionally
+
+            const symbol = document.getElementById('symbol').value.trim(); // Get the stock symbol
+
+            // Basic form validation: ensure symbol isn't empty
+            if (!symbol) {
+                alert("Please enter a stock symbol.");
+                return;
+            }
+
+            // Send the symbol to the Flask backend using Fetch API
+            fetch('http://127.0.0.1:5500/predict', {  // Correct URL with port 5500
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Sending data as JSON
+                },
+                body: JSON.stringify({ symbol: symbol }) // Send JSON payload
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json(); // Ensure JSON response
+            })
+            .then(data => {
+                const resultDiv = document.getElementById('predictionResult');
+                if (data.prediction) {
+                    resultDiv.innerHTML = `<p>${data.prediction}</p>`;
+                } else if (data.error) {
+                    resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+                } else {
+                    resultDiv.innerHTML = `<p style="color:red;">Unexpected error occurred.</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('predictionResult').innerHTML = `<p style="color:red;">An error occurred: ${error.message}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
